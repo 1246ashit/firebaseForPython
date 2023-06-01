@@ -1,0 +1,9 @@
+.brand{
+    height: 50px;
+    border-radius: 50%;
+    cursor: default;
+}
+#brand-text{
+    font-size: 25px;
+    font-weight: 700;
+}

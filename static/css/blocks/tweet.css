@@ -1,0 +1,17 @@
+.tweet {
+  display: flex;
+  border-bottom: 1px solid #000000;
+}
+
+.tweet__imgPreview {
+  width: 400px;
+  height: 400px;
+  border-radius: 20%;
+  margin-right: 10px;
+}
+
+.tweet:hover {
+  background: rgba(0, 0, 0, 0.03);
+  cursor: pointer;
+}
+

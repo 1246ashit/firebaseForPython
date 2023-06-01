@@ -1,0 +1,29 @@
+{% extends 'header_footer.html' %}
+
+{% block title %}歷史紀錄總覽{% endblock %}
+
+{% block content %}
+{%for record in records%}
+<div class="tweet">
+  <div class="tweet__main">
+    <div class="tweet__header">
+      <div class="tweet__type-name">
+        類型:{{record.type}}
+      </div>
+    </div>
+    <div class="tweet__author-slug">
+      現場人士:{{record.name}}
+    </div>
+    <div class="tweet__publish-time">
+      時間:{{record.time}}
+    </div>
+    <div class="tweet__content">
+      處置:{{record.opration}}
+    </div>
+    <a href="{{ url_for('detail',id=record.id) }}">
+      <img class="tweet__imgPreview" src="{{record.photo_address}}" />
+    </a>
+  </div>
+</div>
+{%endfor%}
+{% endblock %}

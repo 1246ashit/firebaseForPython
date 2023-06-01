@@ -1,0 +1,22 @@
+{% extends 'header_footer.html' %}
+
+{% block title %}鏡頭畫面{% endblock %}
+
+{% block content %}
+<style>
+    
+</style>
+<button onclick="startCapture()">攝像頭啟動</button>
+        <button onclick="stopCapture()">攝像頭關閉</button>
+        <br>
+        <img src="{{url_for('video_feed')}}" id="video" width="640px" height="480px"  >
+        <script>
+            function startCapture() {
+                fetch('/start_capture');
+            }
+            function stopCapture() {
+                fetch('/stop_capture');
+            }
+        </script>
+
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'header_footer.html' %}
+
+{% block title %}紀錄詳情{% endblock %}
+
+{% block content %}
+<div>
+  <img src="/{{detail.photo_address}}" width="500px" height="500px">
+</div>
+<div>
+  <form action="{{ url_for('detail',id=detail.id) }}" method="post">
+    <label class="form-label mt-4">發生時間:</label>
+    <p>{{detail.time}}</p>
+    <label class="form-label mt-4">現場人士:</label>
+    <input type="text" name="name" class="form-control" placeholder="{{detail.name}} ">
+    <label class="form-label mt-4">處置:</label>
+    <textarea name="opration" class="form-control" rows="3" placeholder="{{detail.opration}}"></textarea>
+    <div class="d-flex justify-content-end">
+      <button type="submit" class="btn btn-primary mt-2 mr-5 ">確定編輯</button>
+    </div>
+  </form>
+  <div class="d-flex justify-content-end">
+  <form method="post" action="{{url_for('detailDelete',id=detail.id,Imgpath=detail.photo_address) }} "class="form-inline">
+    <button type="delete" class="btn btn-danger mt-2 mr-5">刪除</button>
+  </form>
+  </div>
+</div>
+{% endblock %}
+

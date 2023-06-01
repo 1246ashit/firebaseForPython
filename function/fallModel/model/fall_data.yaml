@@ -1,0 +1,14 @@
+names:
+- fallen
+- sit
+- standing
+nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: fallen_new_version
+  url: https://universe.roboflow.com/byoungwook-b5cd6/fallen_new_version/dataset/4
+  version: 4
+  workspace: byoungwook-b5cd6
+test: ../test/images
+train: fallen_new_version-4/train/images
+val: fallen_new_version-4/valid/images

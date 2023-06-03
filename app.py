@@ -1,6 +1,10 @@
-from flask import Flask,render_template,Response,request,flash,redirect,url_for,session,send_from_directory
+from flask import(Flask,render_template,
+                  Response,request,
+                  flash,redirect,
+                  url_for,session,
+                  send_from_directory,abort
+                ) 
 import os
-import asyncio
 import pyodbc
 import threading
 import function.yoloBulildForLocal as yoloBulildForLocal
@@ -10,9 +14,18 @@ import uuid
 import datetime
 import time
 
-from linebot import LineBotApi
-from linebot.models import TextSendMessage
-from linebot.models import ImageSendMessage
+#line
+from linebot import (
+    LineBotApi, WebhookHandler
+)
+from linebot.models import *
+import re
+from linebot.exceptions import (
+    InvalidSignatureError
+)
+app = Flask(__name__)
+app.secret_key = 'sadkjahs'
+
 
 # 初始化冷卻時間
 cooldown_time = 10  # 冷卻時間為40秒
@@ -20,7 +33,9 @@ cooldown_time = 10  # 冷卻時間為40秒
 warning_triggered = False
 #紀錄警告觸發的起始時間
 start_time=0
-#sql存入
+#domain 初始化
+ngrok=input("輸入你的domainName:")
+#資料sql存入
 def saveInSql(reportTime,names,photo_address,reportType):
     conn = pyodbc.connect('Driver={SQL Server};'
                           'Server=DESKTOP-009OG6J;'
@@ -55,14 +70,14 @@ def alert(needReport,name,frame):
             imgURL=lineAlert.uploadimg("./static/photo/data_photo/"+photo_address)
             print('imgurl:',imgURL)
             #有夠白癡 line 傳送API不讓用函式呼叫
-            line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
-            yourID = 'U83b2468825f9b4c101039e594a9a8446'
             image_message = ImageSendMessage(
-                original_content_url=str(imgURL),
-                preview_image_url=str(imgURL)
-            )
-            line_bot_api.push_message(yourID, image_message)
-            line_bot_api.push_message(yourID, TextSendMessage(text='有危險發生，類型:'+needReport))
+                    original_content_url=str(imgURL),
+                    preview_image_url=str(imgURL)
+                )
+            for i in lineUserFetch():
+                print(i.user_id)
+                line_bot_api.push_message(i.user_id, image_message)
+                line_bot_api.push_message(i.user_id, TextSendMessage(text='有危險發生，類型:'+needReport))
 
             # 取得現在的日期
             current_time = datetime.datetime.now()
@@ -78,13 +93,116 @@ def alert(needReport,name,frame):
             print("Alert cooldown time passed.")
 
 
-app = Flask(__name__)
-app.secret_key = 'sadkjahs'
+
 #捕捉cam 或影片
 video_capture = cv2.VideoCapture(0)
 frame = None
 frame_lock = threading.Lock()#平行處理
 should_capture_frame = False
+
+#linebot 建立
+# 必須放上自己的Channel Access Token
+line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
+# 必須放上自己的Channel Secret
+handler = WebhookHandler('51aeadc5c1eb9f92d3c777e2a6be34f9')
+
+#取得所有使用者的ID
+def lineUserFetch(): 
+    conn = pyodbc.connect('Driver={SQL Server};'
+                          'Server=DESKTOP-009OG6J;'
+                          'Database=homeSafty;'
+                          'UID=sa;'
+                          'PWD=123;')
+    cursor = conn.cursor()
+    sql = "SELECT user_id FROM LineUserId "
+    cursor.execute(sql)
+    userIds = cursor.fetchall()
+    cursor.commit()
+    # 關閉連接
+    conn.close()
+    return userIds
+#儲存新的line userId
+def IdSaveInSql(userId):
+    conn = pyodbc.connect('Driver={SQL Server};'
+                          'Server=DESKTOP-009OG6J;'
+                          'Database=homeSafty;'
+                          'UID=sa;'
+                          'PWD=123;')
+    cursor = conn.cursor()
+    data=(userId)
+    sql = "INSERT INTO LineUserId  (user_id) VALUES ( ? )"
+    cursor.execute(sql,data)
+    cursor.commit()
+    # 關閉連接
+    conn.close()
+    print("儲存成功")
+#line user確認是否有登入
+def lineUserComfirm(userId): 
+    conn = pyodbc.connect('Driver={SQL Server};'
+                          'Server=DESKTOP-009OG6J;'
+                          'Database=homeSafty;'
+                          'UID=sa;'
+                          'PWD=123;')
+    cursor = conn.cursor()
+    sql = "SELECT id FROM LineUserId WHERE user_id = ?"
+    cursor.execute(sql,userId)
+    records = cursor.fetchall()
+    cursor.commit()
+    # 關閉連接
+    conn.close()
+    if len(records) == 0:
+        print('未登入之ID，執行登入')
+        IdSaveInSql(userId)
+#對所有人傳訊息
+for i in lineUserFetch():
+    print(i.user_id)
+    line_bot_api.push_message(i.user_id, TextSendMessage(text='系統開啟'))
+# 監聽所有來自 /callback 的 Post Request
+@app.route("/callback", methods=['POST'])
+def callback():
+    # get X-Line-Signature header value
+    signature = request.headers['X-Line-Signature']
+
+    # get request body as text
+    body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
+
+    # handle webhook body
+    try:
+        handler.handle(body, signature)
+    except InvalidSignatureError:
+        abort(400)
+
+    return 'OK'
+#訊息傳遞區塊
+##### 基本上程式編輯都在這個function #####
+@handler.add(MessageEvent, message=TextMessage)
+def handle_message(event):
+    message = event.message.text
+    #取得用戶資訊
+    UserId = event.source.user_id
+    print(UserId)
+    lineUserComfirm(UserId)
+    if re.match('目前畫面',message):
+        line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+ngrok+'cam'))
+        print("剛剛傳了訊息")
+    if re.match('歷史紀錄',message):
+        line_bot_api.reply_message(event.reply_token,TextSendMessage('歷史紀錄頁面:'+ngrok))
+        print("剛剛傳了訊息")
+    else:
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(message))
+
+@handler.add(FollowEvent)
+def handle_follow(event):
+    UserId = event.source.user_id
+    print(UserId)
+    # 在這裡處理使用者加入事件
+    line_bot_api.reply_message(event.reply_token,TextSendMessage('歡迎使用居家辨識系統'))
+    lineUserComfirm(UserId)
+    print("新的成員加入")
+
+
+
 
 #相片路徑
 @app.route('/images/<path:filename>')
@@ -216,5 +334,6 @@ def cam():
 if __name__=="__main__":
     thread = threading.Thread(target=capture_frames)
     thread.start()
-    app.run(host='0.0.0.0',debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0',port=port,debug=True)
     

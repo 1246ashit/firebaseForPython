@@ -1,4 +1,4 @@
-from flask import Flask,render_template,Response,request,flash,redirect,url_for,session
+from flask import Flask,render_template,Response,request,flash,redirect,url_for,session,send_from_directory
 import os
 import asyncio
 import pyodbc
@@ -15,7 +15,7 @@ from linebot.models import TextSendMessage
 from linebot.models import ImageSendMessage
 
 # 初始化冷卻時間
-cooldown_time = 40  # 冷卻時間為40秒
+cooldown_time = 10  # 冷卻時間為40秒
 # 警告是否已觸發的標誌
 warning_triggered = False
 #紀錄警告觸發的起始時間
@@ -49,10 +49,10 @@ def alert(needReport,name,frame):
             print("Danger detected! Alert triggered.")
             # 儲存相片
             random_uuid = uuid.uuid4()
-            photo_address="./static/photo/data_photo/"+str(random_uuid)+'.jpg'
-            cv2.imwrite(photo_address, frame)
+            photo_address=str(random_uuid)+'.jpg'
+            cv2.imwrite("./static/photo/data_photo/"+photo_address, frame)
             #line 警報
-            imgURL=lineAlert.uploadimg(photo_address)
+            imgURL=lineAlert.uploadimg("./static/photo/data_photo/"+photo_address)
             print('imgurl:',imgURL)
             #有夠白癡 line 傳送API不讓用函式呼叫
             line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
@@ -83,10 +83,13 @@ app.secret_key = 'sadkjahs'
 #捕捉cam 或影片
 video_capture = cv2.VideoCapture(0)
 frame = None
-frame_lock = threading.Lock()
+frame_lock = threading.Lock()#平行處理
 should_capture_frame = False
 
-
+#相片路徑
+@app.route('/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory('.\static\photo\data_photo', filename)#static\photo\data_photo
 
 
 #紀錄首頁
@@ -103,7 +106,6 @@ def getRecords():
     # 關閉連接
     conn.close()
     return render_template("records.html",records=records)
-    #return render_template("camStream.html")
 
 #記錄 查看 編輯
 @app.route('/detail/<int:id>' ,methods=['GET','POST'])
@@ -155,10 +157,8 @@ def detailDelete(id,Imgpath):
     conn.commit()
     conn.close()
 
-    file_path = 'path_to_your_photo.jpg'
-
     try:
-        os.remove(Imgpath)
+        os.remove("./static/photo/data_photo/"+Imgpath)
         print("照片已成功刪除")
     except OSError as e:
         print(f"刪除照片時出現錯誤: {e}")

@@ -4,7 +4,7 @@
 
 {% block content %}
 <div>
-  <img src="/{{detail.photo_address}}" width="500px" height="500px">
+  <img src="{{ url_for('serve_image', filename=detail.photo_address) }}" width="500px" height="500px">
 </div>
 <div>
   <form action="{{ url_for('detail',id=detail.id) }}" method="post">

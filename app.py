@@ -69,7 +69,7 @@ def alert(needReport,name,frame):
             #line 警報
             imgURL=lineAlert.uploadimg("./static/photo/data_photo/"+photo_address)
             print('imgurl:',imgURL)
-            #有夠白癡 line 傳送API不讓用函式呼叫
+            #line 傳送API
             image_message = ImageSendMessage(
                     original_content_url=str(imgURL),
                     preview_image_url=str(imgURL)

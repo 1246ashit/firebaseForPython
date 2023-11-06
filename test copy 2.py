@@ -1,6 +1,6 @@
 from ultralytics import YOLO
 import cv2
-import os
+
 import function.detectAndDraw as detectAndDraw 
 
 #火焰模型建立

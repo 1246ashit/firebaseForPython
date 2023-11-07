@@ -2,11 +2,11 @@ import cv2
 from deepface import DeepFace
 import os
 #臉部模型建立
-res_ = DeepFace.find(img_path = "function/faceData/jj.jpg", db_path = "function/faceData",model_name="Facenet512")#辨識
+#res_ = DeepFace.find(img_path = "function/faceData/jj.jpg", db_path = "function/faceData",model_name="Facenet512")#辨識
 
 def facecompare(img):
     face_match=[]
-    result = DeepFace.find(img_path = img, db_path = "function/faceData",model_name="Facenet512",enforce_detection= False)#辨識
+    result = DeepFace.find(img_path = img, db_path = "function/faceData",model_name="Facenet512")#辨識和生產模組
     for faceData in result: # 用迴圈取出有辨識到的人和位置
         try:
             name=faceData.at[0, "identity"]

@@ -4,8 +4,6 @@ import cv2
 import cvzone
 from deepface import DeepFace
 import os
-#import function.detectAndDraw as detectAndDraw 
-
 
 #臉部模型建立
 def facecompare(img):
@@ -82,7 +80,7 @@ def detectandDraw(img,actionModel,fireModel):
     classNames = ['fallen','sit','standing']
     actionD=ModelSet(frame,actionModel,classNames)
     #火焰偵測區
-    classnames = ['fire', 'smoke']
+    classnames = ['fire']
     fireD=ModelSet(frame,fireModel,classnames)
 
 

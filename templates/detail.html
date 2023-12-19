@@ -4,12 +4,14 @@
 
 {% block content %}
 <div>
-  <img src="{{ url_for('static', filename='photo/saveData/'+detail.photoLocation) }}" width="500px" height="500px">
+  <img src="{{ url_for('static', filename='photo/saveData/'+detail.photoLocation) }}" width="640px" height="640px">
 </div>
 <div>
   <form action="{{ url_for('detail',id=detail.id) }}" method="post">
     <label class="form-label mt-4">發生時間:</label>
     <p>{{detail.time}}</p>
+    <label class="form-label mt-4">災害類型:</label>
+    <input type="text" name="name" class="form-control" placeholder="{{detail.type}} ">
     <label class="form-label mt-4">現場人士:</label>
     <input type="text" name="name" class="form-control" placeholder="{{detail.name}} ">
     <label class="form-label mt-4">處置:</label>
@@ -25,4 +27,3 @@
   </div>
 </div>
 {% endblock %}
-

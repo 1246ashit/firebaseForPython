@@ -1,6 +1,4 @@
-# %%
-#載入LineBot所需要的套件
-#from flask import Flask, request, abort
+import services.CallSql as CallSql
 from flask import(Flask,render_template,
                   Response,request,
                   flash,redirect,
@@ -27,10 +25,8 @@ import function.lineAlert as lineAlert
 import datetime
 import time
 
-# %%
 app=Flask(__name__,static_folder='static')
 
-# %%
 # 必須放上自己的Channel Access Token
 line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
 # 必須放上自己的Channel Secret
@@ -127,86 +123,37 @@ def handle_message(event):
     if re.match('歷史紀錄',message):
         line_bot_api.reply_message(event.reply_token,TextSendMessage('歷史紀錄頁面:'+ngrok))#+ngrok
         print("剛剛傳了訊息")
-    #else:
-    #    line_bot_api.reply_message(event.reply_token, TextSendMessage(message))
 
-# %%
-#webpart
+
 #紀錄首頁
 @app.route("/")
 def getRecords():
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          'Server=MSI;'
-                          'Database=HomeSafty;'
-                          'UID=sa;'
-                          'PWD=123456;')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM records ORDER BY time DESC')
-    records = cursor.fetchall()
-    # 關閉連接
-    conn.close()
+    records=CallSql.SelectALL()
     return render_template("records.html",records=records)
 
 #記錄 查看 編輯
 @app.route('/detail/<id>' ,methods=['GET','POST'])
 def detail(id):
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          'Server=MSI;'
-                          'Database=HomeSafty;'
-                          'UID=sa;'
-                          'PWD=123456;')
-    cursor = conn.cursor()
     if request.method == 'GET':
-        cursor.execute("select * from records where id= ?", id)
-        detail = cursor.fetchone()
-        # 關閉連接
-        conn.close()
+        detail=CallSql.SelectOne(id)
         return render_template("detail.html",detail=detail)
-    if request.method=='DELETE':
-        cursor.execute("DELETE FROM records WHERE id = ?", id)
-        conn.commit()
-        conn.close()
-        return getRecords()
-    else:
+    if request.method == 'POST':
         name = request.form.get('name')
         opration = request.form.get('opration')
-        sql = "UPDATE records SET "
-        if name=='' and opration=='':
-            return redirect(url_for('detail', id=id))
-        if name!='':
-            sql += "name = '%s' , " % name
-        if opration!='':
-            sql += "detail = '%s' , " % opration
-        # 去除最後一個逗號和空格
-        sql = sql[:-2]
-        sql += " WHERE id = '%s'" % id
-        cursor.execute(sql)
-        conn.commit()
-        conn.close()
+        type=request.form.get('type')
+        CallSql.DataUpdate(name,opration,id,type)
         return redirect(url_for('detail', id=id))
 
 #刪除紀錄
 @app.route('/detailDelete/<id>/<path:Imgpath>' ,methods=['POST'])
 def detailDelete(id,Imgpath):
-    conn = pyodbc.connect('Driver={SQL Server};'
-                          'Server=MSI;'
-                          'Database=HomeSafty;'
-                          'UID=sa;'
-                          'PWD=123456;')
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM records WHERE id = ?", id)
-    conn.commit()
-    conn.close()
-
     try:
         os.remove("./static/photo/saveData/"+Imgpath)
         print("照片已成功刪除")
     except OSError as e:
         print(f"刪除照片時出現錯誤: {e}")
-    return getRecords()
-
-
-# %%
+    if CallSql.DataDelete(id):
+        return getRecords()
 
 #鏡頭畫面
 video_capture = cv2.VideoCapture(0)
@@ -290,7 +237,6 @@ def capture_frames():
             #frame,needReport,name= yoloBulildForLocal.video_detection(frame)
             frame,needReport,names=detectAndDraw.detectandDraw(frame,actionModel,fireModel)
             #通報
-            #alert(needReport,name,frame)
             alert(needReport,names,frame)
         else:
             frame = None
@@ -328,7 +274,6 @@ def stop_capture():
 def cam():
     return render_template("camStream.html")
 
-# %%
 #主程式
 import os
 if __name__ == "__main__":
@@ -336,5 +281,3 @@ if __name__ == "__main__":
     thread.start()
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
-
-

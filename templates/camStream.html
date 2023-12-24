@@ -3,7 +3,15 @@
 {% block title %}鏡頭畫面{% endblock %}
 
 {% block content %}
-<h1>Multi-camera Stream</h1>
-<img id="cam" src="{{ url_for('video_feed') }}" width="1280" height="480">
+<div class="camera-container">
+    <div class="camera-feed">
+        <h1>畫面一</h1>
+        <img src="{{ url_for('video_feed_1') }}" alt="Camera 1">
+    </div>
+    <div class="camera-feed">
+        <h1>畫面二</h1>
+        <img src="{{ url_for('video_feed_2') }}" alt="Camera 2">
+    </div>
+</div>
 
 {% endblock %}

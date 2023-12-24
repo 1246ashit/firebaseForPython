@@ -1,4 +1,4 @@
-import services.CallSql as CallSql
+import Services.CallSql as CallSql
 from flask import(Flask,render_template,
                   Response,request,
                   flash,redirect,
@@ -16,13 +16,6 @@ from linebot.models import *
 import re
 import os
 import pyodbc
-import threading
-import cv2
-from ultralytics import YOLO
-import uuid
-import function.lineAlert as lineAlert
-import datetime
-import time
 
 app=Flask(__name__,static_folder='static')
 
@@ -85,9 +78,9 @@ def lineUserComfirm(userId):
 #ngrok=input("輸入你的domainName:")
 ngrok=""
 #對所有人傳訊息
-for i in lineUserFetch():
+'''for i in lineUserFetch():
     print(i.userId)
-    line_bot_api.push_message(i.userId, TextSendMessage(text='系統開啟'))
+    line_bot_api.push_message(i.userId, TextSendMessage(text='系統開啟'))'''
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -155,42 +148,45 @@ def detailDelete(id,Imgpath):
         return getRecords()
 
 #鏡頭畫面
-import function.detectAndDraw as dd
-import numpy as np   
+import Services.FaceRecognition3 as FR
+import Services.YoloDerect as YD
+from ultralytics import YOLO
+import ray
+import cv2
+ray.init()
+fireModel = YOLO(r'function\fireModel\best.pt')
 counter=0
-face_match1=False
-face_match2=False
+data=[False,False]
+counter=[1,15]
 
-def generate_frames():
-    global counter
-    camera1 = cv2.VideoCapture(0)  # 第一個相機
-    camera2 = cv2.VideoCapture(1)  # 第二個相機
-    
+# 在這裡設定捕捉攝影機畫面的函式
+def capture_camera(camera_id):
+    global data,counter
+    camera = cv2.VideoCapture(camera_id)
     while True:
-        success1, frame1 = camera1.read()
-        success2, frame2 = camera2.read()
+        success, frame = camera.read()
+        frame = cv2.resize(frame,(640,480))
+        if not success:
+            break
+        #deepface 每三十幀做一次
+        if counter[camera_id]%15==0:
+            counter[camera_id]=1
+            data[camera_id]=ray.get(FR.face_recognition.remote(frame))
+        else:
+            counter[camera_id]+=1
+        ###
+        #畫出來
+        classNames=["fire"]
+        frame ,needReport=YD.YoloDetectAndDraw(frame,fireModel,classNames)
+        frame=ray.get(FR.faceResultDraw.remote(data[camera_id],frame))#臉部
+        ###
         
-
-        
-        # 調整兩個相機的大小相等
-        frame1 = cv2.resize(frame1, (640, 480))  # 調整大小為 640x480
-        frame2 = cv2.resize(frame2, (640, 480))  # 調整大小為 640x480
-
-        
-
-        # 在兩個相機畫面中間建立白色縫隙
-        white_separator = np.full((480, 10, 3), 255, dtype=np.uint8)
-            
-        # 合併兩個相機的影像
-        combined_frame = np.hstack((frame1, white_separator, frame2))
-            
-        ret, buffer = cv2.imencode('.jpg', combined_frame)
-        frame = buffer.tobytes()  
+        # 在這裡對 frame 做處理，比如轉換成 JPEG 格式
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
         yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-    
-    camera1.release()
-    camera2.release()
+                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
 
 # 影像網頁的路由
 @app.route('/cam')
@@ -198,9 +194,14 @@ def cam():
     return render_template('camStream.html')
 
 # 影像串流的路由
-@app.route('/video_feed')
-def video_feed():
-    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
+# 使用 streaming 輸出攝影機畫面
+@app.route('/video_feed_1')
+def video_feed_1():
+    return Response(capture_camera(0), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/video_feed_2')
+def video_feed_2():
+    return Response(capture_camera(1), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
 #主程式

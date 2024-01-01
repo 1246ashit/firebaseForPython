@@ -43,6 +43,16 @@ def draw(results,image):
 #辨識
 def detect(model,image):
     results =model.predict(
-        source=image,conf=0.7
+        source=image
     )
     return results
+
+def ouputtype(results):
+    name=[]
+    for info in results:
+        boxes = info.boxes
+        for box in boxes:
+            #類型
+            classNames = ["fall","fire","sit","stand"]
+            name.append(classNames[int(box.cls[0])])
+    return name

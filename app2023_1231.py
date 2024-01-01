@@ -31,7 +31,7 @@ def lineUserComfirm(userId):
 
 #domain 初始化
 #ngrok=input("輸入你的domainName:")
-ngrok="https://068f-123-240-53-241.ngrok-free.app/"
+ngrok="https://d053-123-240-53-241.ngrok-free.app/"
 #對所有人傳訊息
 for i in CallSql.fatchAllUser():
     print(i.userId)
@@ -105,19 +105,22 @@ def detailDelete(id,Imgpath):
 #鏡頭畫面
 import Services.FaceRecognition3 as FR
 import Services.YoloDerect as YD
+import Services.Alert as Alert
 from ultralytics import YOLO
 import ray
 import cv2
+from datetime import datetime, timedelta
 ray.init()
 yoloModel=YOLO(r'function\FireAndAction231225_1701\weights\best.pt')
 counter=0
 faceTemp=[False,False]
 yoloTemp=[[],[]]
 counter=[1,15]
+initTime = datetime.now() + timedelta(seconds=10)
 
 # 在這裡設定捕捉攝影機畫面的函式
 def capture_camera(camera_id):
-    global faceTemp,yoloTemp,counter
+    global faceTemp,yoloTemp,counter,initTime
     camera = cv2.VideoCapture(camera_id)
     while True:
         success, frame = camera.read()
@@ -125,7 +128,7 @@ def capture_camera(camera_id):
         if not success:
             break
         #deepface 每三十幀做一次
-        if counter[camera_id]%30==0:
+        if counter[camera_id]%10==0:
             counter[camera_id]=1
             faceTemp[camera_id]=ray.get(FR.face_recognition.remote(frame))
             yoloTemp[camera_id]=YD.detect(yoloModel,frame)
@@ -133,8 +136,23 @@ def capture_camera(camera_id):
             counter[camera_id]+=1
         ###
         #畫出來
-        frame=ray.get(FR.faceResultDraw.remote(faceTemp[camera_id],frame))#臉部
+        frame,ouputname=ray.get(FR.faceResultDraw.remote(faceTemp[camera_id],frame))#臉部
         frame=YD.draw(yoloTemp[camera_id],frame)
+        ###
+        #警報
+        reportType=[]
+        classname=YD.ouputtype(yoloTemp[camera_id])
+        if "fire" in classname:
+            reportType.append("fire")
+        if "fall" in classname:
+            reportType.append("fall")
+        
+        print(reportType,ouputname)
+        now=datetime.now()
+        if now>initTime:
+            if Alert.alert(reportType,ouputname,frame):
+                initTime=now+timedelta(seconds=30)
+                print("觸發警報")
         ###
         
         # 在這裡對 frame 做處理，比如轉換成 JPEG 格式

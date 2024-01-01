@@ -58,7 +58,9 @@ def SaveInSql(reportTime,names,photo_address,reportType):
     nameStr=''
     for i in names:
         nameStr=''+i+','
-    data=(reportTime,nameStr[:-1],photo_address,reportType)
+    for i in reportType:
+        reportTypeStr=''+i+','    
+    data=(reportTime,nameStr[:-1],photo_address,reportTypeStr)
     sql = "INSERT INTO records (time,name,photoLocation,type) VALUES ( ? ,? ,? ,?)"
     cursor.execute(sql,data)
     cursor.commit()
@@ -83,7 +85,7 @@ def lineUserComfirm(userId):
         print("查無此人")
         return False
 
-#登入
+#USER註冊
 def registUser(userId):
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()

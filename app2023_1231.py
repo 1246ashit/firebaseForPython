@@ -111,7 +111,7 @@ import ray
 import cv2
 from datetime import datetime, timedelta
 ray.init()
-yoloModel=YOLO(r'function\FireAndAction231225_1701\weights\best.pt')
+yoloModel=YOLO(r'function\FireAndAction240102_1723\weights\best.pt')
 counter=0
 faceTemp=[False,False]
 yoloTemp=[[],[]]

@@ -15,13 +15,17 @@ from linebot.exceptions import (
 from linebot.models import *
 import re
 import os
+from pyngrok import ngrok
 
 app=Flask(__name__,static_folder='static')
+app.config.from_object('config')
 
 # 必須放上自己的Channel Access Token
-line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
+#line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
+line_bot_api = LineBotApi(app.config['LINEPOTAPI'])
+
 # 必須放上自己的Channel Secret
-handler = WebhookHandler('51aeadc5c1eb9f92d3c777e2a6be34f9')
+handler = WebhookHandler(app.config['HANDLER'])
 
 #line user確認是否有登入
 def lineUserComfirm(userId): 
@@ -30,12 +34,12 @@ def lineUserComfirm(userId):
            print(f"新User 加入:{userId}")
 
 #domain 初始化
-#ngrok=input("輸入你的domainName:")
-ngrok="https://d053-123-240-53-241.ngrok-free.app/"
+public_url = ngrok.connect(5000).public_url
+
 #對所有人傳訊息
-for i in CallSql.fatchAllUser():
-    print(i.userId)
-    line_bot_api.push_message(i.userId, TextSendMessage(text='系統開啟'))
+#for i in CallSql.fatchAllUser():
+#    print(i.userId)
+#    line_bot_api.push_message(i.userId, TextSendMessage(text='系統開啟'))
 
 # 監聽所有來自 /callback 的 Post Request
 @app.route("/callback", methods=['POST'])
@@ -65,10 +69,10 @@ def handle_message(event):
     print(UserId)
     lineUserComfirm(UserId)
     if re.match('目前畫面',message):
-        line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+ngrok+'cam'))#+ngrok+'cam'
+        line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+public_url+'cam'))#+ngrok+'cam'
         print("剛剛傳了訊息")
     if re.match('歷史紀錄',message):
-        line_bot_api.reply_message(event.reply_token,TextSendMessage('歷史紀錄頁面:'+ngrok))#+ngrok
+        line_bot_api.reply_message(event.reply_token,TextSendMessage('歷史紀錄頁面:'+public_url))#+ngrok
         print("剛剛傳了訊息")
 
 
@@ -101,6 +105,21 @@ def detailDelete(id,Imgpath):
         print(f"刪除照片時出現錯誤: {e}")
     if CallSql.DataDelete(id):
         return getRecords()
+
+#設定畫面
+from werkzeug.utils import secure_filename
+@app.route('/settings', methods=['GET','POST'])
+def settings():
+    if request.method == 'GET':
+        return render_template('setting.html')
+    if request.method == 'POST':
+        file = request.files['faceImage']
+        if file.filename != '':
+            file.save(os.path.join(app.config['FACE_LOCATION'], file.filename))
+        return redirect(url_for('settings'))
+        
+
+
 
 #鏡頭畫面
 import Services.FaceRecognition3 as FR
@@ -181,5 +200,7 @@ def video_feed_2():
 #主程式
 import os
 if __name__ == "__main__":
+    # 啟動 ngrok 隧道
+    print("ngrok 隧道 URL:",public_url)
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

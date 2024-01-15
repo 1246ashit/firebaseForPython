@@ -1,6 +1,17 @@
 import cv2
 from ultralytics import YOLO
 import math
+from PIL import Image, ImageDraw, ImageFont
+import numpy as np
+
+def cv2_putText_chinese(img, text, position, font_size, color):
+    img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(img_pil)
+    font_path = r"function\Noto_Sans_TC\NotoSansTC-VariableFont_wght.ttf"  # 指定字體檔案路徑
+    font = ImageFont.truetype(font_path, font_size)
+    draw.text(position, text, font=font, fill=color)
+    return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
+
 #畫框框
 def drawbox(img,x1, y1, x2, y2,classNames,conf):
     start_point = (x1, y1)  # 左上角座標 (x, y)
@@ -12,7 +23,7 @@ def drawbox(img,x1, y1, x2, y2,classNames,conf):
 
     # 在框框附近繪製文字
     text_color = (255, 255, 255)  # 白色 (BGR)
-    text_start_point = (x1, y1+20)  # 文字起始座標
+    text_start_point = (x1, y1)  # 文字起始座標
     font = cv2.FONT_HERSHEY_SIMPLEX  # 字體
     font_scale = 0.8  # 字體縮放大小
     end_point2=(x2, y1+20)
@@ -20,7 +31,8 @@ def drawbox(img,x1, y1, x2, y2,classNames,conf):
     
     # 在圖片上畫出框框
     image= cv2.rectangle(img, start_point, end_point, color, thickness)
-    cv2.putText(img, f' {classNames} {conf}%', text_start_point, font, font_scale, text_color, 2)#標記
+    image = cv2_putText_chinese(image, f' {classNames} {conf}%', text_start_point, 20, text_color)
+    #cv2.putText(img, f' {classNames} {conf}%', text_start_point, font, font_scale, text_color, 2)#標記
     return image
 
 #解析資料跟畫

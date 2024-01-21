@@ -69,7 +69,7 @@ def SaveInSql(reportTime,names,photo_address,reportType):
     print("儲存成功")
 
 #確認 LINEID 是否有登入
-def lineUserComfirm(userId):
+def LineUserComfirm(userId):
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()
     sql = "SET NOCOUNT ON SELECT * FROM LineUserId WHERE userId = ?"
@@ -111,7 +111,7 @@ def fatchAllUser():
     return userIds
 
 #取得所有臉
-def getAllFace():
+def GetAllFace():
     conn=pyodbc.connect(**conn_params)
     cursor=conn.cursor()
     cursor.execute('SET NOCOUNT ON SELECT ID,name,photo FROM face')
@@ -119,7 +119,7 @@ def getAllFace():
     return records
 
 #新增臉
-def addface(name,photo):
+def Addface(name,photo):
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()
     sql = "INSERT INTO face  (name,photo) VALUES ( ?,? )"
@@ -129,5 +129,15 @@ def addface(name,photo):
     # 關閉連接
     conn.close()
     return True
+
 #刪除臉
-#編輯臉
+def Deleteface(id):
+    conn = pyodbc.connect(**conn_params)
+    cursor = conn.cursor()
+    sql = "DELETE FROM face WHERE id = ?;"
+    data=(id)
+    cursor.execute(sql,data)
+    cursor.commit()
+    # 關閉連接
+    conn.close()
+    return True

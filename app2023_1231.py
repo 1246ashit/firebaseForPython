@@ -16,9 +16,12 @@ from linebot.models import *
 import re
 import os
 from pyngrok import ngrok
+from Controller.setting import settings_blueprint
 
 app=Flask(__name__,static_folder='static')
 app.config.from_object('config')
+
+app.register_blueprint(settings_blueprint, url_prefix='/Settings')
 
 # 必須放上自己的Channel Access Token
 #line_bot_api = LineBotApi('QXOpsah7x1u7z32mpTd0Hnhv+XcbDxO3ua4HHrdxj9IWZA0Ow74ZdMa50AjeplzID6YMHxVUjVGQP/XzXEqbhCk4lL0QTzbAoSRRD/qGqKINvexHgeTgMSGGv7vI5/gzorNX761VhCjIZu3xjf8NgAdB04t89/1O/w1cDnyilFU=')
@@ -28,8 +31,8 @@ line_bot_api = LineBotApi(app.config['LINEPOT_API'])
 handler = WebhookHandler(app.config['HANDLER'])
 
 #line user確認是否有登入
-def lineUserComfirm(userId): 
-   if CallSql.lineUserComfirm(userId)!=True:
+def LineUserComfirm(userId): 
+   if CallSql.LineUserComfirm(userId)!=True:
        if CallSql.registUser(userId):
            print(f"新User 加入:{userId}")
 
@@ -67,7 +70,7 @@ def handle_message(event):
     #取得用戶資訊
     UserId = event.source.user_id
     print(UserId)
-    lineUserComfirm(UserId)
+    LineUserComfirm(UserId)
     if re.match('目前畫面',message):
         line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+public_url+'cam'))#+ngrok+'cam'
         print("剛剛傳了訊息")
@@ -96,37 +99,18 @@ def detail(id):
         return redirect(url_for('detail', id=id))
 
 #刪除紀錄
-@app.route('/detailDelete/<id>/<path:Imgpath>' ,methods=['POST'])
-def detailDelete(id,Imgpath):
+@app.route('/detailDelete/<id>/<path:imgpath>' ,methods=['POST'])
+def detailDelete(id,imgpath):
     try:
-        os.remove("./static/photo/saveData/"+Imgpath)
+        os.remove("./static/photo/saveData/"+imgpath)
         print("照片已成功刪除")
     except OSError as e:
         print(f"刪除照片時出現錯誤: {e}")
     if CallSql.DataDelete(id):
         return getRecords()
 
-#設定畫面
-from werkzeug.utils import secure_filename
-@app.route('/Settings', methods=['GET'])
-def Settings():
-    faces=CallSql.getAllFace()
-    return render_template('setting.html',faces=faces)
 
-#加入人像
-@app.route('/AddFace', methods=['POST'])
-def AddFace():
-    file = request.files['faceImage']
-    name = request.form.get('name')
-    if file.filename !="" and name!="":
-        file.save(os.path.join(app.config['FACE_LOCATION'], file.filename))
-        CallSql.addface(name,file.filename)
-        os.remove(r"function\faceData\representations_facenet512.pkl")
-    return redirect(url_for('Settings'))
 
-@app.route('/FaceData/<filename>')
-def FaceData(filename):
-    return send_from_directory(app.config['FACE_LOCATION'], filename)
         
 
 #鏡頭畫面

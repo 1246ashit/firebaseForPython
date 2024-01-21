@@ -5,15 +5,20 @@
 {% block content %}
 
 <div class="user-list">
-{%for face in faces%}
-<div class="user">
-  <img src="{{ url_for('FaceData', filename=face.photo) }}"  class="avatar">
-  <p class="username">{{face.name}}</p>
-</div>
-{%endfor%}
+  {% for face in faces %}
+    <div class="user">
+      <img src="{{ url_for('Settings.FaceData', filename=face.photo) }}" class="avatar">
+      <p class="username">{{face.name}}</p>
+      <div class="d-flex justify-content-end">
+        <form action="{{ url_for('Settings.DeleteFace',id=face.ID,photo=face.photo) }}" method="post">
+          <button type="submit" class="btn btn-danger mt-2">刪除</button>
+        </form >
+      </div>
+    </div>
+  {% endfor %}
 </div>
 
-<form method="POST" enctype="multipart/form-data"  action="{{ url_for('AddFace') }}">
+<form method="POST" enctype="multipart/form-data"  action="{{ url_for('Settings.AddFace') }}">
   <div>
   頭像:<input type="file" name="faceImage"  accept="image/*" required>
   </div>

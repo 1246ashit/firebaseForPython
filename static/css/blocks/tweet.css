@@ -10,13 +10,6 @@
   margin-right: 10px;
 }
 
-.tweet__facePreview {
-  height: 160px;
-  width:120px;
-  border-radius: 20%;
-  margin-right: 10px;
-}
-
 .tweet:hover {
   background: rgba(0, 0, 0, 0.03);
   cursor: pointer;
@@ -30,19 +23,28 @@
 
 .user {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
 }
 
 .avatar {
-  width: 160px; /* 可調整頭像大小 */
-  height: 216px; /* 可調整頭像大小 */
-  border-radius: 70%; /* 圓形頭像 */
+  width: 100px; /* 可調整頭像大小 */
+  height: 100px; /* 可調整頭像大小 */
+  border-radius: 50%; /* 圓形頭像 */
   margin-right: 10px;
 }
 
 .username {
   font-size: 16px;
   font-weight: bold;
+  flex: 1;
+  text-align: center;
+}
+
+.button-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* 控制按鈕之間的空隙 */
 }
 

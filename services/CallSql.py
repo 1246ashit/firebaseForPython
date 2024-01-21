@@ -109,3 +109,25 @@ def fatchAllUser():
     # 關閉連接
     conn.close()
     return userIds
+
+#取得所有臉
+def getAllFace():
+    conn=pyodbc.connect(**conn_params)
+    cursor=conn.cursor()
+    cursor.execute('SET NOCOUNT ON SELECT ID,name,photo FROM face')
+    records = cursor.fetchall()
+    return records
+
+#新增臉
+def addface(name,photo):
+    conn = pyodbc.connect(**conn_params)
+    cursor = conn.cursor()
+    sql = "INSERT INTO face  (name,photo) VALUES ( ?,? )"
+    data=(name,photo)
+    cursor.execute(sql,data)
+    cursor.commit()
+    # 關閉連接
+    conn.close()
+    return True
+#刪除臉
+#編輯臉

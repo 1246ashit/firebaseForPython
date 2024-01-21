@@ -3,8 +3,24 @@
 {% block title %}設定{% endblock %}
 
 {% block content %}
-<form method="POST" enctype="multipart/form-data"  action="{{ url_for('settings') }}">
-    <input type="file" name="faceImage"  accept="image/*" required>
-    <input type="submit" value="上傳">
-  </form>
+
+<div class="user-list">
+{%for face in faces%}
+<div class="user">
+  <img src="{{ url_for('FaceData', filename=face.photo) }}"  class="avatar">
+  <p class="username">{{face.name}}</p>
+</div>
+{%endfor%}
+</div>
+
+<form method="POST" enctype="multipart/form-data"  action="{{ url_for('AddFace') }}">
+  <div>
+  頭像:<input type="file" name="faceImage"  accept="image/*" required>
+  </div>
+  <div>
+    姓名:
+    <input type="text" name="name"  accept="image/*" required>
+  </div>
+  <input type="submit" value="上傳">
+</form>
 {% endblock %}

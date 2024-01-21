@@ -5,7 +5,7 @@ import ray
 
 @ray.remote
 def face_recognition(img):
-    result = DeepFace.find(img_path=img, db_path="Dataset/FaceData", model_name="Facenet512", enforce_detection=False)
+    result = DeepFace.find(img_path=img, db_path=r"function\faceData", model_name="Facenet512")#enforce_detection=False
     for i in result:
         try:
             name = i.at[0, "identity"]

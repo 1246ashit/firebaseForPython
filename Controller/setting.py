@@ -1,4 +1,3 @@
-
 from flask import (Blueprint,
                    render_template,redirect,
                    send_from_directory,request,
@@ -8,18 +7,18 @@ import Services.CallSql as CallSql
 import os
 
 
-settings_blueprint = Blueprint('Settings', __name__)
+settingsBP=Blueprint('Settings', __name__)
 namedic=CallSql.GetName()
 
 #設定畫面
-@settings_blueprint.route('/', methods=['GET'])
+@settingsBP.route('/', methods=['GET'])
 def Settings():
     faces=CallSql.GetAllFace()
     return render_template('setting.html',faces=faces)
 
 
 #加入人像
-@settings_blueprint.route('/AddFace', methods=['POST'])
+@settingsBP.route('/AddFace', methods=['POST'])
 def AddFace():
     global namedic
     file = request.files['faceImage']
@@ -36,12 +35,12 @@ def AddFace():
 
 
 #給前端圖像
-@settings_blueprint.route('/FaceData/<filename>')
+@settingsBP.route('/FaceData/<filename>')
 def FaceData(filename):
     return send_from_directory(current_app.config['FACE_LOCATION'], filename)
 
 #delete人像
-@settings_blueprint.route('/DeleteFace/<id>/<photo>', methods=['POST'])
+@settingsBP.route('/DeleteFace/<id>/<photo>', methods=['POST'])
 def DeleteFace(id,photo):
     global namedic
     if CallSql.Deleteface(id) :

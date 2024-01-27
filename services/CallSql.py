@@ -141,3 +141,16 @@ def Deleteface(id):
     # 關閉連接
     conn.close()
     return True
+
+
+#名子中文
+def GetName():
+    conn=pyodbc.connect(**conn_params)
+    cursor=conn.cursor()
+    cursor.execute('SET NOCOUNT ON SELECT name,photo FROM face')
+    records = cursor.fetchall()
+     # 將每條記錄轉換成字典的一部分
+    return {photo: name for name, photo in records}
+
+
+

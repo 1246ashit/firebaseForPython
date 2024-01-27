@@ -7,8 +7,9 @@ from flask import (Blueprint,
 import Services.CallSql as CallSql
 import os
 
-settings_blueprint = Blueprint('Settings', __name__)
 
+settings_blueprint = Blueprint('Settings', __name__)
+namedic=CallSql.GetName()
 
 #設定畫面
 @settings_blueprint.route('/', methods=['GET'])
@@ -20,11 +21,13 @@ def Settings():
 #加入人像
 @settings_blueprint.route('/AddFace', methods=['POST'])
 def AddFace():
+    global namedic
     file = request.files['faceImage']
     name = request.form.get('name')
     if file.filename !="" and name!="":
         file.save(os.path.join(current_app.config['FACE_LOCATION'], file.filename))
         CallSql.Addface(name,file.filename)
+        namedic=CallSql.GetName()
         try:
             os.remove(r"function\faceData\representations_facenet512.pkl")
         except FileNotFoundError:
@@ -40,8 +43,10 @@ def FaceData(filename):
 #delete人像
 @settings_blueprint.route('/DeleteFace/<id>/<photo>', methods=['POST'])
 def DeleteFace(id,photo):
+    global namedic
     if CallSql.Deleteface(id) :
         os.remove(current_app.config['FACE_LOCATION']+"/"+ photo)
+        namedic=CallSql.GetName()
         try:
             os.remove(r"function\faceData\representations_facenet512.pkl")
         except FileNotFoundError:

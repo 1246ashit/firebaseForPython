@@ -40,7 +40,7 @@ def draw(results,image):
             #信心
             conf=math.ceil(box.conf[0] * 100)
             #類型
-            classNames = ["fall","fire","sit","stand"]
+            classNames = ["跌倒","火災","坐","站立"]
             name=classNames[int(box.cls[0])]
             #位置
             x1,y1,x2,y2 = box.xyxy[0]
@@ -62,6 +62,6 @@ def ouputtype(results):
         boxes = info.boxes
         for box in boxes:
             #類型
-            classNames = ["fall","fire","sit","stand"]
+            classNames = ["跌倒","火災","坐","站立"]
             name.append(classNames[int(box.cls[0])])
     return name

@@ -1,4 +1,5 @@
 import Services.CallSql as CallSql
+import Controller.setting as setting
 from flask import(Flask,render_template,
                   Response,request,
                   flash,redirect,
@@ -128,10 +129,11 @@ faceTemp=[False,False]
 yoloTemp=[[],[]]
 counter=[1,15]
 initTime = datetime.now() + timedelta(seconds=10)
+namedic=setting.namedic
 
 # 在這裡設定捕捉攝影機畫面的函式
 def capture_camera(camera_id):
-    global faceTemp,yoloTemp,counter,initTime
+    global faceTemp,yoloTemp,counter,initTime,namedic
     camera = cv2.VideoCapture(camera_id)
     while True:
         success, frame = camera.read()
@@ -147,16 +149,16 @@ def capture_camera(camera_id):
             counter[camera_id]+=1
         ###
         #畫出來
-        frame,ouputname=ray.get(FR.faceResultDraw.remote(faceTemp[camera_id],frame))#臉部
+        frame,ouputname=ray.get(FR.faceResultDraw.remote(faceTemp[camera_id],frame,namedic))#臉部
         frame=YD.draw(yoloTemp[camera_id],frame)
         ###
         #警報
         reportType=[]
         classname=YD.ouputtype(yoloTemp[camera_id])
-        if "fire" in classname:
-            reportType.append("fire")
-        if "fall" in classname:
-            reportType.append("fall")
+        if "火災" in classname:
+            reportType.append("火災")
+        if "火災" in classname:
+            reportType.append("火災")
         
         print(reportType,ouputname)
         now=datetime.now()

@@ -1,7 +1,6 @@
 from flask import (Blueprint,
                    render_template,redirect,
-                   send_from_directory,request,
-                   url_for,current_app
+                    request,url_for
                    )
 import Services.CallSql as CallSql
 import os
@@ -39,3 +38,6 @@ def detailDelete(id,imgpath):
         print(f"刪除照片時出現錯誤: {e}")
     if CallSql.DataDelete(id):
         return redirect(url_for('Information.getRecords'))
+    
+
+

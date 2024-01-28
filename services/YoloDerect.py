@@ -52,7 +52,7 @@ def draw(results,image):
 #辨識
 def detect(model,image):
     results =model.predict(
-        source=image
+        source=image,conf=0.7
     )
     return results
 

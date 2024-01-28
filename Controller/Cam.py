@@ -50,7 +50,7 @@ def capture_camera(camera_id):
         if "跌倒" in classname:
             reportType.append("跌倒")
         
-        print(reportType,ouputname)
+        print(reportType,ouputname)#
         now=datetime.now()
         if now>initTime:
             if Alert.alert(reportType,ouputname,frame):

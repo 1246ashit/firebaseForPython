@@ -25,8 +25,13 @@ def face_recognition(img):
 def cv2_putText_chinese(img, text, position, font_size, color):
     img_pil = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
     draw = ImageDraw.Draw(img_pil)
-    font_path = r"function\Noto_Sans_TC\NotoSansTC-VariableFont_wght.ttf"  # 指定字體檔案路徑
+    font_path = "function/Noto_Sans_TC/NotoSansTC-VariableFont_wght.ttf"  #中文字型模組
     font = ImageFont.truetype(font_path, font_size)
+    # 繪製文字陰影
+    shadow_color=(0, 0, 0)
+    shadow_offset = 1  # 陰影偏移量
+    draw.text((position[0] + shadow_offset, position[1] + shadow_offset), text, font=font, fill=shadow_color)
+    # 繪製文字
     draw.text(position, text, font=font, fill=color)
     return cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 

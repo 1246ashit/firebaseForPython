@@ -5,3 +5,7 @@ ray
 deepface
 Pillow
 ultralytics
+opencv-python-headless
+pyodbc
+pyngrok
+imgurpython

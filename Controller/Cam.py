@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 ray.init()
 
 CamBP = Blueprint('Cam', __name__)
-yoloModel=YOLO(r'function\FireAndAction240102_1723\weights\best.pt')
+yoloModel=YOLO('function/FireAndAction240102_1723/weights/best.pt')
 counter=0
 faceTemp=[False,False]
 yoloTemp=[[],[]]

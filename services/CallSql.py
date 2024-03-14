@@ -1,11 +1,11 @@
 import pyodbc
 
 conn_params = {
-    "Driver": "SQL Server",
-    "Server": "MSI",
+    "Driver": "ODBC Driver 17 for SQL Server",
+    "Server": "localhost,1433",
     "Database": "HomeSafty",
     "UID": "sa",
-    "PWD": "123456",
+    "PWD": "LikeAndSubscribe1!",
 }
 
 
@@ -72,7 +72,7 @@ def SaveInSql(reportTime,names,photo_address,reportType):
 def LineUserComfirm(userId):
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()
-    sql = "SET NOCOUNT ON SELECT * FROM LineUserId WHERE userId = ?"
+    sql = "SET NOCOUNT ON SELECT * FROM lineUserId WHERE userId = ?"
     cursor.execute(sql,userId)
     records = cursor.fetchall()
     cursor.commit()
@@ -89,7 +89,7 @@ def LineUserComfirm(userId):
 def registUser(userId):
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()
-    sql = "INSERT INTO LineUserId  (userId) VALUES ( ? )"
+    sql = "INSERT INTO lineUserId  (userId) VALUES ( ? )"
     data=(userId)
     cursor.execute(sql,data)
     cursor.commit()
@@ -102,7 +102,7 @@ def registUser(userId):
 def fatchAllUser():
     conn = pyodbc.connect(**conn_params)
     cursor = conn.cursor()
-    sql = "SELECT userId FROM LineUserId "
+    sql = "SELECT userId FROM lineUserId "
     cursor.execute(sql)
     userIds = cursor.fetchall()
     cursor.commit()
@@ -114,7 +114,7 @@ def fatchAllUser():
 def GetAllFace():
     conn=pyodbc.connect(**conn_params)
     cursor=conn.cursor()
-    cursor.execute('SET NOCOUNT ON SELECT ID,name,photo FROM face')
+    cursor.execute('SET NOCOUNT ON SELECT id,name,photo FROM face')
     records = cursor.fetchall()
     return records
 

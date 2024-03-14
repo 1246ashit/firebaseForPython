@@ -38,6 +38,7 @@ def LineUserComfirm(userId):
            print(f"新User 加入:{userId}")
 
 #domain 初始化
+ngrok.set_auth_token("2Xk198frYK3EWYD6A3dzZPb10Ch_6vc4NMgXvoRcuFbWNpLvH")
 public_url = ngrok.connect(5000).public_url
 
 #對所有人傳訊息
@@ -73,7 +74,7 @@ def handle_message(event):
     print(UserId)
     LineUserComfirm(UserId)
     if re.match('目前畫面',message):
-        line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+public_url+'cam'))#+ngrok+'cam'
+        line_bot_api.reply_message(event.reply_token,TextSendMessage('鏡頭畫面開啟:'+public_url+'/cam'))#+ngrok+'cam'
         print("剛剛傳了訊息")
     if re.match('歷史紀錄',message):
         line_bot_api.reply_message(event.reply_token,TextSendMessage('歷史紀錄頁面:'+public_url))#+ngrok
